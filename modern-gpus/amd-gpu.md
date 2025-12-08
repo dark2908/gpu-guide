@@ -20,7 +20,7 @@ Pro/workstation cards, as well as OEM or niche cards, may be missing on this lis
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | Monterey (12.1)     |
 
 As of 12.1, Apple has added Navi 23 support.
@@ -49,7 +49,7 @@ Needed kexts:
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | Big Sur (11.4)      |
 
 As of 11.4, Apple has added Navi 21 support.
@@ -82,7 +82,7 @@ Needed kexts:
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | Catalina (10.15.1)  |
 
 As of 10.15.1, Apple has added RDNA and Navi support.
@@ -125,7 +125,7 @@ Needed kexts:
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | Mojave (10.14.5)    |
 
 All Vega based dedicated GPUs are natively supported in macOS with Vega 20 GPUs starting in Mojave.
@@ -146,7 +146,7 @@ Needed kexts:
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | High Sierra (10.13) |
 
 Just like with Vega 20, Vega 10 GPUs are natively supported in macOS, though these cards' support starts in High Sierra.
@@ -178,7 +178,7 @@ Needed kexts:
 
 | Support Status                       ||
 | --------------- | ------------------- |
-| Latest Support  | Current/Sonoma (14) |
+| Latest Support  | Current/Sequoia (15) |
 | Initial Support | Sierra (10.12.6) |
 
 :::tip INFO
@@ -368,7 +368,7 @@ As these cards are not supported by the native drivers, we do not recommend purc
 
 ### Navi 22 series
 
-#### Highest Supported OS: Current/Sonoma (14)
+#### Highest Supported OS: Current/Sequoia (15)
 
 Navi 22 series graphics cards are not natively supported by macOS. However, there is a WIP kext, NootRX, that aims to patch the AMD graphics drivers to support Navi 22. It is not fully functional: please see its website for more information.
 
