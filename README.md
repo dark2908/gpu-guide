@@ -1,0 +1,1 @@
+# Một guide chọn GPU cài Hackintosh đã được Việt hoá
