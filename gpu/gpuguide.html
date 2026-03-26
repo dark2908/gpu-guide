@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU Hackintosh Guide</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 950px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+h1 { font-size: 2.3rem; }
+h2 {
+  margin-top: 50px;
+  border-bottom: 1px solid #334155;
+}
+
+a { color: #60a5fa; }
+
+.toc {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 30px 0;
+}
+
+.box {
+  padding: 15px;
+  border-radius: 10px;
+  margin: 15px 0;
+}
+
+.good { background: #064e3b; }
+.bad { background: #7f1d1d; }
+.warn { background: #78350f; }
+
+footer {
+  margin-top: 60px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>GPU Hackintosh Guide</h1>
+<p>Mình đã rút gọn và Việt hoá từ Guide của Dortania để dễ hiểu và thuận tiện hơn, nếu có sai sót gì mong bạn bỏ qua cho.</p>
+<p>Trong bài có sử dụng một phần những từ ngữ không thông dụng, mong bạn tra cứu hoặc tìm hiểu trước khi đọc Guild này.</p>
+<div class="toc">
+<b>Mục lục</b>
+<ul>
+<li><a href="#overview">Tổng quan</a></li>
+<li><a href="#notes">Câu hỏi</a></li>
+<li><a href="#amd">GPU AMD</a></li>
+<li><a href="#nvidia">GPU Nvidia</a></li>
+<li><a href="#igpu">Intel iGPU</a></li>
+</ul>
+</div>
+
+<h2 id="overview">Tổng quan</h2>
+<p>
+Tính đến thời điểm năm tháng 3 năm 2026, bản mới nhất macOS 26 Tahoe đã được phát hành và dự kiến sẽ là bản cuối cùng còn được Apple hỗ trợ Intel, điều này có nghĩa là có khả năng cao Hackintosh cũng sẽ dừng chân ở bản macOS này.
+</p>
+<p>
+Hiện tại, ngay thời điểm mà macOS 26 Tahoe đang là bản mới nhất, chúng ta đã trải qua nhiều phiên bản hệ điều hành mà không có trình điều khiển chính thức từ NVIDIA và cả Apple cho GPU Maxwell, Pascal, Turing hoặc Ampere nữa. Điều này có nghĩa là các GPU này không hỗ trợ macOS 10.14 Mojave trở lên, vì vậy người dùng các mẫu GPU này bị mắc kẹt lại ở macOS High Sierra. Mình cũng đã thử cài đặt macOS cao hơn và patch bằng OCLP nhưng nó không hiệu quả và cực kì bất ổn kể cả không làm gì cả (nó vẫn sẽ xé/rác hình và nhiều vấn đề hơn nữa nếu bạn có thao tác như bấm mở 1 cái gì đó cực kì nhẹ).</p>
+<p>
+Kepler cũng đã bị loại bỏ trong macOS Monterey, điều này có nghĩa là không còn hỗ trợ cho bất kỳ GPU NVIDIA nào nữa. Tất cả mọi sự hỗ trợ cho GPU Nvidia đều đã kết thúc.
+</p>
+
+
+<h2 id="notes">Một vài câu hỏi ngắn gọn và đúng trọng tâm</h2>
+<ul>
+<li>Nếu GPU của tôi được hỗ trợ native, tại sao lại cần đến Lilu và WhateverGreen?</li>
+<p>
+    Câu hỏi này xuất hiện khá nhiều trong cộng đồng Hackintosh. Vậy theo bạn tại sao cùng là một GPU, thậm chí cùng tên và hiệu năng gần như nhau nhưng bản trên được bán trên thị trường vẫn không hoàn toàn giống bản được trang bị trên các máy Mac? Câu trả lời khá đơn giản, bố cục ACPI trên máy Mac và PC khác nhau nên chúng sẽ hoạt động không tốt trong một số tình huống. Nếu đã có tìm hiểu, bạn sẽ biết việc của Lilu và WhateverGreen là vá các phần khác nhau của Hackintosh như đổi tên thiết bị, hỗ trợ kết nối framebuffer, vá các đầu nối âm thanh, cho phép sửa đổi aty_config, aty_properties, cail_properties thông qua ACPI và nhiều hơn nữa. Hoàn toàn hoàn hảo để sửa đổi cho việc chạy Hackintosh. Dù sao việc bạn đang làm cũng là chạy macOS trên phần cứng PC ( vốn không được tối ưu bởi Apple ) mà.
+</p>
+<li>Hiện tại có những sự lựa chọn nào?</li>
+<p>
+    Như đã đề cập ở trên, kể từ macOS Monterey thì tất cả các GPU Nvidia đã hoàn toàn ngừng hỗ trợ trong macOS, bao gồm cả các card Kepler, điều này có nghĩa chỉ còn lại là GPU AMD và card tích hợp của Intel ( iGPU ) là cách duy nhất để có thể cài đặt và sử dụng các phiên bản từ Monterey đến mới nhất ( cho đến khi bị ngừng hỗ trợ ).
+</p>
+<li>Có thể chạy GPU không được hỗ trợ trong bản Hackintosh của tôi không?</li>
+<p>
+    Câu trả lời ngắn gọn là có nhưng không thực sự là chạy mà chỉ đơn giản là xuất hình. Khi sử dụng GPU không được hỗ trợ, macOS sẽ sử dụng trình điều khiển VESA khi không có driver. Bản chất giống như Microsoft Display Basic, nó cực kì giật lag và nhiều chức năng của macOS bị hỏng khi chạy trình điều khiển này, có thể kể đến như độ ổn định hoặc chế độ ngủ.
+</p>
+<li>Tôi có thể xuất hình macOS trên iGPU của mình nhưng render trên GPU không được hỗ trợ của tôi không? ( giống như laptop Window mà không có Mux Switch )</li>
+<p>
+    Ngắn gọn: không. Lý do thực sự khá giống với cách hoạt động của công nghệ Optimus của NVIDIA. Trước tiên, bạn sẽ cần có một cách nào đó để lấy/mã hóa tín hiệu của iGPU, gửi nó cho GPU rời, sau đó GPU rời đã giải mã tín hiệu và hiển thị nó thông qua iGPU. Nhưng một vấn đề nhỏ là việc giải mã tín hiệu sẽ yêu cầu tăng tốc GPU thích hợp mà GPU không được hỗ trợ của bạn không có. Vì vậy, bạn sẽ cần sử dụng các cổng xuất hình trên của Mainboard bất kể điều gì.
+</p>
+</ul>
+
+
+
+<h2 id="amd">GPU AMD</h2>
+<ul>
+
+    <h3>Polaris (RX 470/480/570/580)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 26 Tahoe ( đã được xác minh )</b></p>
+    <p>Hầu hết mọi mẫu card dòng Polaris đều được hỗ trợ miễn là nó chạy lõi Ellesmere hoặc Baffin. Các card cấp thấp hơn như RX 550 có thể chạy lõi Lexa, nghĩa là cần phải fake GPU sang lõi Baffin RX 550. Các card duy nhất không được hỗ trợ là RX 580 2048SP và RX 590 GME, nếu là RX 580 2048SP thì bạn có thể cần mod BIOS của card thành RX570 ( điều này khá nguy hiểm và không được khuyến khích )</p>
+
+    <h3>Navi 10 series</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia ( có thể tới MacOS 26 Tahoe )</b></p>
+    <p>Từ bản 10.15.1, Apple đã hỗ trợ RDNA và Navi</p>
+    <p>Trừ RX5300XT OEM không có thông tin và RX5500 OEM không được xác mình thì còn lại tất cả đều ổn</p>
+    <p>Note: Một vài card Navi 10 và 14 yêu cầu boot argument agdpmod=pikera</p>
+
+    <h3>Navi 21 series</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia ( có thể tới MacOS 26 Tahoe )</b></p>
+    <p>Từ bản 11.4, Apple đã hỗ trợ Navi 21</p>
+    <p>RX 6900 XT (XTX/XTXH variant) tức thường là phiên bản Extreme và Ultimate và RX 6950 XT cần spoof thành RX 6900 XT</p>
+    <p>Note: Một vài card Navi 21 yêu cầu boot argument agdpmod=pikera</p>
+
+    <h3>Navi 23 series</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia ( có thể tới MacOS 26 Tahoe )</b></p>
+    <p>Từ bản 12.1, Apple đã hỗ trợ Navi 21</p>
+    <p>Trừ RX 6650 XT cần spoof thành RX 6600 XT thì còn lại tất cả đều ổn</p>
+    <p>Note: Một vài card Navi 23 yêu cầu boot argument agdpmod=pikera</p>
+
+    <h3>Còn một số mẫu card không thông dụng / phổ biến / cũ hoặc quá cũ thì mình không đề cập ở đây. Nếu bạn đang xài một chiếc card nằm ngoài danh sách trên thì có thể xem từ guide của Dortania.</h3>
+</ul>
+
+
+
+
+<h2 id="nvidia">GPU Nvidia</h2>
+
+<ul>
+    <h3>Kepler Series (GTX 6xx, 7xx)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 11 Big Sur</b></p>
+    <p>Kể từ phiên bản Monterey beta 7, Kepler không còn được hỗ trợ. Vì vậy phiên bản cuối cùng vẫn còn được hỗ trợ là macOS 11 Big Sur. Người dùng đã báo cáo sự cố với GTX 650 Ti, 660, 660 Ti nhưng điều này là do sự cố driver ở phía Apple do không hỗ trợ lõi GK106 (hoặc khá kém vì vấn đề dường như là rò rỉ bộ nhớ cũng ảnh hưởng đến máy Mac thực sự). Một vấn đề khác với thế hệ này là các sản phẩm cấp thấp hơn được bán trên thị trường vì Kepler thế hệ đầu tiên thực sự sử dụng lõi Fermi nhưng cũng có các phiên bản giống hệt nhau chạy lõi Kepler (GF 116 so với GK 107 được tìm thấy trong GT 640). VÀ XIN LƯU Ý RẰNG CÁC BIẾN THỂ GTX 745, 750 và Ti KHÔNG ĐƯỢC BAO GỒM, CHÚNG KHÔNG PHẢI LÀ KEPLER.</p>
+    <p><b>Card được hỗ trợ:</b></p>
+    <p>700 Series:</p>
+    <li>GTX Titan (lõi GK110 Maxwell)</li>
+    <li>GTX Titan Black (lõi GK110 Maxwell)</li>
+    <li>GTX Titan Z (là một trong số ít các GPU kép được hỗ trợ trong macOS, nhưng chỉ có 1 lõi được sử dụng)</li>
+    <li>GTX 780ti</li>
+    <li>GTX 780</li>
+    <li>GTX 770</li>
+    <li>GTX 760ti</li>
+    <li>GTX 760</li>
+    <li>GTX 740 (phiên bản dùng lõi GK107)</li>
+    <li>GTX 730 (phiên bản dùng lõi GK208)</li>
+    <li>GTX 720</li>
+    <li>GTX 710 (phiên bản dùng lõi GK208)</li>
+
+    <p>600 Series:</p>
+    <li>GTX 690 ( cũng là một GPU kép khác được hỗ trợ bởi macOS, nhưng chỉ có 1 lõi được sử dụng)</li>
+    <li>GTX 680</li>
+    <li>GTX 670</li>
+    <li>GTX 660ti</li>
+    <li>GTX 660 (phiên bản dùng lõi GK104, không phải bản dùng GK106)</li>
+    <li>GTX 650 (phiên bản dùng lõi GK107)</li>
+    <li>GTX 640 (phiên bản dùng lõi GK107/GK208)</li>
+    <li>GTX 635</li>
+    <li>GTX 630 (phiên bản dùng lõi GK107/GK208)</li>
+
+    <h3>Lovelace Series (RTX 40xx)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <h4>Không có hỗ trợ trong bất kỳ phiên bản macOS nào vì không có trình điều khiển nào được viết ngay cả ở phiên bản High Sierra.</h4>
+
+    <h3>Ampere Series (RTX 30xx)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <h4>Không có hỗ trợ trong bất kỳ phiên bản macOS nào vì không có trình điều khiển nào được viết ngay cả ở phiên bản High Sierra.</h4>
+
+    <h3>Turing Series (RTX 20xx, GTX 16xx)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <h4>Không có hỗ trợ trong bất kỳ phiên bản macOS nào vì không có trình điều khiển nào được viết ngay cả ở phiên bản High Sierra.</h4>
+
+    <h3>Volta Series</h3>
+    <p><b>MacOS duy nhất được hỗ trợ: High Sierra 17G3025 (10.13.6)</b></p>
+    <p>Hóa ra NVIDIA thực sự đã phát hành một phiên bản Trình điều khiển Web có hỗ trợ Volta là: 387.10.10.15.15.108. Tuy nhiên, phiên bản này đã được báo cáo là không ổn định đối với một số người dùng và NVIDIA đã thu hồi nó ngay sau đó. Kể từ đó, không có phiên bản nào khác của Trình điều khiển Web được phát hành để hỗ trợ của Volta. Do lỗi được báo cáo và NVIDIA đã rút các trình điều khiển này, chúng sẽ được coi chúng là không được hỗ trợ.</p>
+    <p>Một số người dùng đã báo cáo rằng phiên bản 387.10.10.15.15.108 của Web Drivers có thể hỗ trợ tất cả các phiên bản của High Sierra. Tuy nhiên, vì NVIDIA chỉ phát hành nó cho 17G3025, chúng ta chỉ xác định phiên bản đó một cách rõ ràng.</p>
+    <p>Các GPU này bao gồm</p>
+    <li>Titan V</li>
+    <li>Titan V CEO Edition</li>
+    <p>Quadro:</p>
+    <li>Quadro GV100</li>
+
+    <h3>Kepler Series (Các biến thể dùng lõi GK106)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: (null)</b></p>
+    <p>GPUs sử dụng lõi GK106 thật đáng tiếc là có sự cố nghiêm trọng liên quan đến rò rỉ VRAM. Điều này có nghĩa là có nguy cơ cao có khả năng biến dạng hình và mất ổn định tổng thể khi sử dụng các GPU này, điều này không may là không có giải pháp thực sự vì ngay cả việc sử dụng trình điều khiển web cũng không có tác dụng.</p>
+    <p>Kepler thế hệ thứ hai:</p>
+    <li>GT 740 (phiên bản dùng lõi GK106)</li>
+    <p>Kepler thế hệ đầu tiên:</p>
+    <li>GTX 660</li>
+    <li>GTX 650ti</li>
+    <li>GTX 650</li>
+    <li>GTX 645</li>
+    <p>Quadro:</p>
+    <li>K4000</li>
+
+    <h3>Fermi đổi thương hiệu (GF108, GF117 và GF119)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 10.13.6 High Sierra</b></p>
+    <p>Vì Nvidia không tuân theo quy ước đặt tên nào nên họ đã tạo ra một số GPU dòng 600/700 dựa trên kiến trúc Fermi cũ hơn và không tương thích.</p>
+    <p>Những GPU này bao gồm:</p>
+    <li>GT 730 (phiên bản dùng lõi GF108)</li>
+    <li>GT 720A</li>
+    <li>GT 710 (phiên bản dùng lõi GF119)</li>
+    <li>GT 705</li>
+    <li>GT 640 (phiên bản dùng lõi GF108 và GF116)</li>
+    <li>GT 630 (phiên bản dùng lõi GF108)</li>
+    <li>GT 620</li>
+    <li>GT 610</li>
+
+    <h3>Pascal Series (GTX 10xx)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 10.13.6 High Sierra</b></p>
+    <p>Chắc chắn rằng hầu hết tất cả mọi người đều biết chuyện đang xảy ra với Pascal và Maxwell, nhưng nó sẽ được đề cập nhanh ở đây. Không hỗ trợ các GPU này trong MacOS 10.14 Mojave trở lên, nhưng MacOS Sierra và High Sierra hỗ trợ các GPU này với trình điều khiển webdriver hơi kém chất lượng của Nvidia và cùng với sự hỗ trợ của kext Lilu và Whatever Green. Hãy đảm bảo rằng bạn đã cập nhật lên bản dựng 17G14042 từ App Store trước khi cài đặt trình điều khiển web trên High Sierra.</p>
+    <p>Các GPU được hỗ trợ:</p>
+    <li>GTX Titan X (phiên bản dùng lõi Pascal GP102-400)</li>
+    <li>GTX Titan Xp (phiên bản dùng lõi Pascal GP102-450)</li>
+    <li>GTX 1080 Ti</li>
+    <li>GTX 1080</li>
+    <li>GTX 1070 Ti</li>
+    <li>GTX 1070</li>
+    <li>GTX 1060 (<b>Ghi chú</b>: phiên bản dùng lõi GP104/GDDR5X không được hỗ trợ bởi web drivers)</li>
+    <li>GTX 1050 Ti</li>
+    <li>GTX 1050</li>
+    <li>GT 1030</li>
+    <li>GT 1010 (nên hoạt động dựa trên mặt lí thuyết, nhưng chưa được xác minh)</li>
+    <p>Quadro:</p>
+    <li>Quadro GP100</li>
+    <li>Quadro P6000</li>
+    <li>Quadro P5000</li>
+    <li>Quadro P4000</li>
+    <li>Quadro P2000</li>
+    <li>Quadro P1000</li>
+    <li>Quadro P620</li>
+    <li>Quadro P600</li>
+    <li>Quadro P400</li>
+
+    <h3>Maxwell Series (GTX 9xx, 745, 750/Ti)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 10.13.6 High Sierra</b></p>
+    <p>Ý tưởng giống như Pascal, mặc dù sơ đồ đặt tên hơi kì quặc vì GTX 745, 750 và 750ti đều dựa trên Maxwell dù chúng được bán trên thị trường với dòng Kepler nên hãy cảnh giác khi mua.</p>
+    <p>Các GPU được hỗ trợ</p>
+    <li>GTX Titan X (phiên bản sử dụng lõi GM200 Maxwell)</li>
+    <li>GTX 980 Ti</li>
+    <li>GTX 980</li>
+    <li>GTX 970</li>
+    <li>GTX 960</li>
+    <li>GTX 950</li>
+    <li>GTX 750 Ti</li>
+    <li>GTX 750</li>
+    <li>GTX 745</li>
+    <p>Quadro:</p>
+    <li>Quadro M6000</li>
+    <li>Quadro M5000</li>
+    <li>Quadro M4000</li>
+    <li>Quadro M2000</li>
+    <li>Quadro K2200</li>
+    <li>Quadro K1200</li>
+    <li>Quadro K620</li>
+</ul>
+
+
+
+
+<h2 id="igpu">Intel iGPU/GPU</h2>
+<ul>
+    <h3>Ivy Bridge 3XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 11 Big Sur</b></p>
+    <p>HD4000 được hỗ trợ native tới macOS 11 Big Sur, và bị loại bỏ từ macOS 12 Monterey. Ngược lại, HD2500 chỉ hỗ trợ 1 phần tính năng Quicksync trên macOS 10.14 Mojave.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>HD 2500 (chỉ hỗ trợ Quicksync)</li>
+    <li>HD 4000</li>
+    <li>HD P4000</li>
+
+    <h3>Haswell 4XXX</h3>
+    <p><b>MacOS cao nhất được được hỗ trợ: MacOS 12 Monterey</b></p>
+    <p>Hầu hết các iGPU ở dòng này đều được hỗ trợ, ngoại trừ HD 4400 cần phải fake ID sang HD 4600 với kext WhateverGreen hoặc ACPI đã được sửa đổi.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>HD 4200</li>
+    <li>HD 4400 (cần phải fake ID sang HD4600)</li>
+    <li>HD 4600</li>
+    <li>HD 5000</li>
+    <li>HD 5100</li>
+    <li>HD P4600 (trên lí thuyết)</li>
+    <li>HD P4700 (trên lí thuyết)</li>
+
+    <h3>Broadwell 5XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 12 Monterey</b></p>
+    <p>Tất cả iGPU ở dòng này đều được hỗ trợ, không có vấn đề nào được báo cáo.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>HD 5300</li>
+    <li>HD 5500</li>
+    <li>HD 5600</li>
+    <li>HD 6000</li>
+    <li>HD 6100</li>
+    <li>HD 6200</li>
+    <li>HD P5700 (trên lí thuyết)</li>
+    <li>Iris Pro P6300</li>
+
+    <h3>Skylake 6XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia (<b>Cần đọc ghi chú</b>)</b></p>
+    <b>Ghi chú: Từ macOS 13 Ventura đã ngưng hỗ trợ các iGPU thuộc dòng Skylake 6XXX. Tuy nhiên, vì iGPU dòng Skylake và Kaby Lake rất giống nhau, nên có thể fake iGPU Skylake sang Kaby Lake để sử dụng các kext của Kaby Lake, vốn vẫn còn và được hỗ trợ trong macOS 13 Ventura - macOS 15 Sequoia. Hãy sử dụng kext WhateverGreen phiên bản 1.6.1 trở lên, thay đổi device-id và AAPL/ig-platform-id của bạn thành kiểu Kaby Lake giống nhất, và nếu sử dụng cùng 1 EFI để khởi động macOS 12 Monterey trở xuống, hãy thêm -igfxsklaskbl vào tham số khởi động boot-arg của bạn.</b>
+    <p>Hầu hết các iGPU ở dòng này đều được hỗ trợ (ngoại trừ HD 505 và 510), không có vấn đề nào được báo cáo.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>HD 515</li>
+    <li>HD 520</li>
+    <li>HD 530</li>
+    <li>HD P530</li>
+    <li>Iris 540</li>
+    <li>Iris 550</li>
+    <li>Iris Pro 580</li>
+    <li>Iris Pro P555</li>
+    <li>Iris Pro P580</li>
+
+    <h3>Kaby Lake 7XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia</b></p>
+    <p>Hầu hết các iGPU tở dòng này đều được hỗ trợ (ngoại trừ phiên bản HD 610 có trong Pentinum G4560).</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>HD 615</li>
+    <li>HD 620</li>
+    <li>HD 630</li>
+    <li>Iris Plus 640</li>
+    <li>Iris Plus 650</li>
+
+    <h3>Kaby Lake Refresh/Coffee Lake/Coffee Lake Refresh/Whiskey Lake/Comet Lake 8XXX/9XXX/10XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia</b></p>
+    <p>Hầu hết các iGPU tở dòng này đều được hỗ trợ (ngoại trừ phiên bản UHD 610 có trong i5-10200H), tuy nhiên cần lưu ý i3-8100 và i3-8350K sử dụng một phiên bản UHD 630 khác biệt (184 Shader Unit so với 192) so với phần còn lại của dòng CPU này, điều này yêu cầu spoofing để được hỗ trợ trong macOS 10.13 High Sierra.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>UHD 615</li>
+    <li>UHD 617</li>
+    <li>UHD 620</li>
+    <li>UHD 630</li>
+    <li>Iris Plus 645</li>
+    <li>Iris Plus 655</li>
+
+    <h3>Ice Lake 10XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: MacOS 15 Sequoia</b></p>
+    <p>Hầu hết các iGPU ở dòng này đều được hỗ trợ (ngoại trừ phiên bản UHD Graphics G1 không được hỗ trợ | phiên bản Iris G4/G7 vẫn được hỗ trợ vì nó là Iris chứ không phải UHD...) bắt đầu từ macOS 10.15 Catalina.</p>
+    <p>iGPUs được hỗ trợ:</p>
+    <li>Iris Plus G4</li>
+    <li>Iris Plus G7</li>
+
+    <h3>Braswell</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>HD 400</li>
+    <li>HD 405</li>
+
+    <h3>Skylake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>HD 510</li>
+
+    <h3>Apollo Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>HD 500</li>
+    <li>HD 505</li>
+
+    <h3>Kaby Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>HD 610</li>
+
+    <h3>Kaby Lake Refresh/Coffee Lake/Coffee Lake Refresh/Whiskey Lake/Comet Lake 8XXX/9XXX/10XXX</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD 610</li>
+
+    <h3>Gemini Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD 600</li>
+    <li>UHD 605</li>
+
+    <h3>Ice Lake (10XXX)</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD Graphics (G1)</li>
+
+    <h3>Tiger Lake/Rocket Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Tất cả các iGPU của dòng CPU này đều không được hỗ trợ, vì chúng dựa trên kiến trúc Xe mới.</p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD Graphics for 11th Gen Intel Processors</li>
+    <li>Intel Xe Graphics</li>
+
+    <h3>Alder Lake/Rocket Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Tất cả các iGPU của dòng CPU này đều không được hỗ trợ, vì chúng dựa trên kiến trúc Xe mới.</p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD Graphics for 12th Gen Intel Processors</li>
+    <li>Intel Xe Graphics</li>
+    <li>Intel UHD Graphics</li>
+
+    <h3>Raptor Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Tất cả các iGPU của dòng CPU này đều không được hỗ trợ, vì chúng dựa trên kiến trúc Xe mới.</p>
+    <p>Không hỗ trợ:</p>
+    <li>UHD Graphics for 13th Gen Intel Processors</li>
+    <li>UHD Graphics for 14th Gen Intel Processors</li>
+    <li>Intel Graphics</li>
+    <li>Intel Xe Graphics</li>
+
+    <h3>Meteor Lake</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Tất cả các iGPU của dòng CPU này đều không được hỗ trợ, vì chúng dựa trên kiến trúc Xe mới.</p>
+    <p>Không hỗ trợ:</p>
+    <li>Intel Graphics</li>
+    <li>Intel Arc Graphics</li>
+
+    <h3>Các phiên bản GPU rời dành cho máy tính để bàn</h3>
+    <p><b>MacOS cao nhất được hỗ trợ: KHÔNG</b></p>
+    <p>Khá vui vì Intel đã làm được card rời, nhưng vì chưa có 1 chiếc máy real mac nào được sử dụng (và khả năng là trong tương lai cũng không vì giờ Apple đã dùng GPU của chip Apple Silicon tự sản xuất) nên chúng cũng chắc chắn không được hỗ trợ trong macOS dưới bất kì hình thức nào và không có cách nào để bypass hay patch.</p>
+    <p>Không hỗ trợ:</p>
+    <li>Arc A310</li>
+    <li>Arc A380</li>
+    <li>Arc A580</li>
+    <li>Arc A750</li>
+    <li>Arc A770 (8GB/16GB)</li>
+    <li>Arc A350M</li>
+    <li>Arc A370M</li>
+    <li>Arc A550M</li>
+    <li>Arc A730M</li>
+    <li>Arc A770M</li>
+    <li>Arc A30M</li>
+    <li>Arc A40</li>
+    <li>Arc A50</li>
+    <li>DG1</li>
+
+</ul>
+
+
+
+
+
+<footer>
+Based on Dortania. Rewritten & simplified.
+</footer>
+
+</div>
+</body>
+</html>
